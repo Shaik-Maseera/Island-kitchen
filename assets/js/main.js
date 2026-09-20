@@ -88,18 +88,18 @@
   ];
 
   const galleryImgs = [
-    { img: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=700&q=80", h: 1 },
-    { img: "https://images.unsplash.com/photo-1502005097973-6a7082348e28?auto=format&fit=crop&w=700&q=80", h: 1.3 },
-    { img: "https://images.unsplash.com/photo-1592506119503-c0b18879bd5a?auto=format&fit=crop&w=700&q=80", h: 1 },
-    { img: "https://images.unsplash.com/photo-1610177534644-34d881503b83?auto=format&fit=crop&w=700&q=80", h: 1.2 },
-    { img: "https://images.unsplash.com/photo-1671197244266-73129c97c096?auto=format&fit=crop&w=700&q=80", h: 1 },
-    { img: "https://images.unsplash.com/photo-1556912102-ea493a2a5b93?auto=format&fit=crop&w=700&q=80", h: 1.35 },
-    { img: "https://images.unsplash.com/photo-1600489000022-c2086d79f9d4?auto=format&fit=crop&w=700&q=80", h: 1.1 },
-    { img: "https://images.unsplash.com/photo-1484154218962-a197022b5858?auto=format&fit=crop&w=700&q=80", h: 1 },
-    { img: "https://images.unsplash.com/photo-1759147960461-b74a7e9a75d4?auto=format&fit=crop&w=700&q=80", h: 1.25 },
-    { img: "https://images.unsplash.com/photo-1649361811423-a55616f7ab11?auto=format&fit=crop&w=700&q=80", h: 1 },
-    { img: "https://images.unsplash.com/photo-1556909212-d5b604d0c90d?auto=format&fit=crop&w=700&q=80", h: 1.2 },
-    { img: "https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=700&q=80", h: 1 },
+    { img: "assets/images/moment1.jpeg", h: 1.25 },
+    { img: "assets/images/moment12.jpeg", h: 1 },
+    { img: "assets/images/moment10.jpeg", h: 1.2 },
+    { img: "assets/images/moment3.jpeg", h: 1 },
+    { img: "assets/images/moment4.jpeg", h: 1.25 },
+    { img: "assets/images/moment11.jpeg", h: 1 },
+    { img: "assets/images/moment8.jpeg", h: 1.2 },
+    { img: "assets/images/moment6.jpeg", h: 1 },
+    { img: "assets/images/moment2.jpeg", h: 1.25 },
+    { img: "assets/images/moment5.jpeg", h: 1 },
+    { img: "assets/images/moment9.jpeg", h: 1.2 },
+    { img: "assets/images/moment7.jpeg", h: 1 },
   ];
 
   const faqs = [
@@ -553,3 +553,48 @@
     initYear();
   });
 })();
+
+
+
+
+
+
+
+
+
+
+
+
+/* =========================================
+   PROJECT VIDEOS - AUTO PLAY ON SCROLL
+   ========================================= */
+
+function initProjectVideos() {
+  const videos = document.querySelectorAll(".project-video");
+
+  if (!videos.length) return;
+
+  const videoObserver = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        const video = entry.target;
+
+        if (entry.isIntersecting) {
+          video.play().catch(() => {});
+        } else {
+          video.pause();
+        }
+      });
+    },
+    {
+      threshold: 0.5
+    }
+  );
+
+  videos.forEach((video) => {
+    videoObserver.observe(video);
+  });
+}
+
+/* Start Project Videos */
+initProjectVideos();
