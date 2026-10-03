@@ -1,5 +1,5 @@
 /* ===================================================================
-   Island Kitchens — Design System
+   Island Interiors — Design System
    =================================================================== */
 
 :root{
@@ -240,27 +240,45 @@ html.dark .filter-chip.active{ background:#c9a876; color:#1c1917; border-color:#
 /* ---------------- Stats ---------------- */
 .stat-label{ font-size:.7rem; letter-spacing:.15em; text-transform:uppercase; color: currentColor; opacity:.55; margin-top:.5rem; }
 
-/* ---------------- Masonry gallery ---------------- */
-.masonry{ column-count: 1; column-gap: 1.25rem; }
-@media(min-width:640px){ .masonry{ column-count: 2; } }
-@media(min-width:1024px){ .masonry{ column-count: 3; } }
-.masonry-item{
-  break-inside: avoid; margin-bottom: 1.25rem; position:relative; border-radius: 1.25rem; overflow:hidden;
-  cursor: zoom-in;
+/* ---------------- Project gallery (category sections) ---------------- */
+.gallery-category + .gallery-category{ margin-top: clamp(4.5rem, 8vw, 7rem); }
+
+.gallery-cat-title{
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 600;
+  font-size: clamp(1.75rem, 2.6vw, 2.25rem);
+  letter-spacing: .03em;
+  text-transform: uppercase;
 }
-.masonry-item img{ width:100%; display:block; transition: transform .8s var(--ease-luxury), filter .5s; }
-.masonry-item:hover img{ transform: scale(1.06); }
-.masonry-item::after{
+.gallery-cat-rule{
+  display: block; width: 56px; height: 2px; margin: .9rem auto 0; border-radius: 2px;
+  background: linear-gradient(90deg, #a9764f, #c9a876);
+}
+
+.gallery-grid{ display:grid; grid-template-columns: repeat(1, 1fr); gap: 1.5rem; }
+@media(min-width:640px){ .gallery-grid{ grid-template-columns: repeat(2, 1fr); } }
+@media(min-width:1024px){ .gallery-grid{ grid-template-columns: repeat(3, 1fr); gap: 1.75rem; } }
+
+.gallery-card{
+  position:relative; border-radius: 1.25rem; overflow:hidden; cursor: zoom-in;
+  aspect-ratio: 4 / 3;
+}
+.gallery-card img{
+  width:100%; height:100%; object-fit: cover; display:block;
+  transition: transform .8s var(--ease-luxury), filter .5s;
+}
+.gallery-card:hover img{ transform: scale(1.06); }
+.gallery-card::after{
   content:""; position:absolute; inset:0; background: rgba(0,0,0,0); transition: background .4s;
 }
-.masonry-item:hover::after{ background: rgba(0,0,0,.15); }
-.masonry-item .zoom-icon{
+.gallery-card:hover::after{ background: rgba(0,0,0,.15); }
+.gallery-card .zoom-icon{
   position:absolute; top:1rem; right:1rem; width:2.25rem; height:2.25rem; border-radius:50%;
   background: rgba(255,255,255,.9); color:#1c1917; display:flex; align-items:center; justify-content:center;
   opacity:0; transform: scale(.7); transition: all .35s var(--ease-luxury);
 }
-.masonry-item:hover .zoom-icon{ opacity:1; transform:scale(1); }
-.masonry-item .zoom-icon svg{ width:1rem; height:1rem; }
+.gallery-card:hover .zoom-icon{ opacity:1; transform:scale(1); }
+.gallery-card .zoom-icon svg{ width:1rem; height:1rem; }
 
 /* ---------------- FAQ ---------------- */
 .faq-item{ padding: 1.75rem 0; }
@@ -346,6 +364,16 @@ html.dark .fab-top{ background:#c9a876; color:#1c1917; }
 
 /* Lightbox */
 #lightbox.flex{ display:flex; }
+
+/* Video lightbox: same dark overlay as the image lightbox, but the
+   clicked <video> itself is moved in here, so its grid-thumbnail sizing
+   (fixed height, object-fit:cover) is overridden while it's inside the
+   overlay — the base .project-video rule is untouched everywhere else. */
+#video-lightbox.flex{ display:flex; }
+#video-lightbox-stage .project-video{
+  width: auto; height: auto; max-width: 90vw; max-height: 85vh;
+  object-fit: contain; border-radius: 12px; box-shadow: 0 25px 60px rgba(0,0,0,.5);
+}
 
 
 

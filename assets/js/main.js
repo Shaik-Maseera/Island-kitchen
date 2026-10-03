@@ -1,5 +1,5 @@
 /* ===================================================================
-   Island Kitchens — main.js
+   Island Interiors — main.js
    =================================================================== */
 (function () {
   "use strict";
@@ -80,26 +80,11 @@
   ];
 
   const testimonials = [
-    { name: "Ananya Rao", role: "Bengaluru", img: "https://randomuser.me/api/portraits/women/44.jpg", stars: 5, text: "Island Kitchens turned our cramped kitchen into the best room in the house. The island alone changed how we entertain." },
+    { name: "Ananya Rao", role: "Bengaluru", img: "https://randomuser.me/api/portraits/women/44.jpg", stars: 5, text: "Island Interiors turned our cramped kitchen into the best room in the house. The island alone changed how we entertain." },
     { name: "Rohan Mehta", role: "Mumbai", img: "https://randomuser.me/api/portraits/men/32.jpg", stars: 5, text: "The 3D render matched the final result almost exactly. Genuinely impressive attention to detail throughout." },
     { name: "Priya Nair", role: "Hyderabad", img: "https://randomuser.me/api/portraits/women/68.jpg", stars: 5, text: "Professional from first call to final handover. Our U-shaped kitchen is both beautiful and incredibly functional." },
     { name: "Arjun Kapoor", role: "Pune", img: "https://randomuser.me/api/portraits/men/54.jpg", stars: 4, text: "Great materials, great installation team. Minor delay in delivery but the quality more than made up for it." },
     { name: "Sneha Iyer", role: "Chennai", img: "https://randomuser.me/api/portraits/women/21.jpg", stars: 5, text: "Five years on and the matte finish still looks brand new. Worth every rupee of the investment." },
-  ];
-
-  const galleryImgs = [
-    { img: "assets/images/moment1.jpeg", h: 1.25 },
-    { img: "assets/images/moment12.jpeg", h: 1 },
-    { img: "assets/images/moment10.jpeg", h: 1.2 },
-    { img: "assets/images/moment3.jpeg", h: 1 },
-    { img: "assets/images/moment4.jpeg", h: 1.25 },
-    { img: "assets/images/moment11.jpeg", h: 1 },
-    { img: "assets/images/moment8.jpeg", h: 1.2 },
-    { img: "assets/images/moment6.jpeg", h: 1 },
-    { img: "assets/images/moment2.jpeg", h: 1.25 },
-    { img: "assets/images/moment5.jpeg", h: 1 },
-    { img: "assets/images/moment9.jpeg", h: 1.2 },
-    { img: "assets/images/moment7.jpeg", h: 1 },
   ];
 
   const faqs = [
@@ -258,24 +243,51 @@
   }
 
   /* ---------------------------------------------------------------
-     Render: Gallery masonry + lightbox
+     Init: Gallery (static categories, written directly in index.html) + lightbox
+
+     Each <section class="gallery-category"> in index.html already has its
+     heading and a <div class="gallery-grid"> with plain <img> tags — no
+     data source, no fetch, nothing generated. This function only:
+       1) hides a category whose grid has no <img> in it yet, and
+       2) turns each existing <img> into a card with the zoom-icon hover
+          and wires it to the lightbox, exactly like before.
+     To add a photo: add an <img> inside the matching category's
+     .gallery-grid in index.html. To add a category: copy a
+     .gallery-category block and point it at a new assets/images/gallery/
+     folder. Nothing in this file needs to change either time.
   --------------------------------------------------------------- */
-  function renderGallery() {
-    const grid = $("#masonry-grid");
-    if (!grid) return;
-    grid.innerHTML = galleryImgs
-      .map(
-        (g) => `
-      <div class="masonry-item reveal-card" data-full="${g.img.replace("w=700", "w=1600")}">
-        <img loading="lazy" src="${g.img}" alt="Island Kitchens project detail" style="aspect-ratio:${(1 / g.h).toFixed(2)}/1">
-        <span class="zoom-icon"><i data-lucide="maximize-2"></i></span>
-      </div>`
-      )
-      .join("");
+  function initGallery() {
+    const root = $("#gallery-root");
+    if (!root) return;
+
+    $$(".gallery-category", root).forEach((section) => {
+      const grid = $(".gallery-grid", section);
+      const imgs = grid ? $$("img", grid) : [];
+
+      if (!imgs.length) {
+        section.classList.add("hidden");
+        return;
+      }
+
+      imgs.forEach((img) => {
+        const card = document.createElement("div");
+        card.className = "gallery-card reveal-card";
+        card.dataset.full = img.getAttribute("src");
+        img.replaceWith(card);
+        card.appendChild(img);
+        img.loading = "lazy";
+        const icon = document.createElement("span");
+        icon.className = "zoom-icon";
+        icon.innerHTML = '<i data-lucide="maximize-2"></i>';
+        card.appendChild(icon);
+      });
+    });
+
+    if (window.lucide) window.lucide.createIcons();
 
     const lightbox = $("#lightbox");
     const lightboxImg = $("#lightbox-img");
-    $$(".masonry-item", grid).forEach((item) => {
+    $$(".gallery-card", root).forEach((item) => {
       item.addEventListener("click", () => {
         lightboxImg.src = item.dataset.full;
         lightboxImg.alt = item.querySelector("img").alt;
@@ -537,13 +549,13 @@
     renderWhyUs();
     renderProcess();
     renderTestimonials();
-    renderGallery();
     renderFaq();
     renderSocials();
     renderIcons();
 
     initHeader();
     initThemeToggle();
+    initGallery();
     initReveal();
     initCounters();
     initFloating();
@@ -594,6 +606,74 @@ function initProjectVideos() {
   videos.forEach((video) => {
     videoObserver.observe(video);
   });
+
+  /* ---------------------------------------------------------------
+     Click-to-open: custom dark overlay (not the native Fullscreen API).
+     The clicked <video> element itself is moved into the overlay — same
+     node, same playback position, no duplicate/second video — then moved
+     back to its original spot in the grid when closed.
+  --------------------------------------------------------------- */
+  const overlay = document.getElementById("video-lightbox");
+  const stage = document.getElementById("video-lightbox-stage");
+  const closeBtn = document.getElementById("video-lightbox-close");
+  if (!overlay || !stage || !closeBtn) return;
+
+  let activeVideo = null;
+  let activeVideoParent = null;
+  let activeVideoNextSibling = null;
+
+  function isInViewport(el, thresholdRatio) {
+    const rect = el.getBoundingClientRect();
+    const windowHeight = window.innerHeight || document.documentElement.clientHeight;
+    const visibleHeight = Math.min(rect.bottom, windowHeight) - Math.max(rect.top, 0);
+    return Math.max(0, visibleHeight) / rect.height >= thresholdRatio;
+  }
+
+  function openVideoOverlay(video) {
+    activeVideo = video;
+    activeVideoParent = video.parentElement;
+    activeVideoNextSibling = video.nextElementSibling;
+
+    stage.appendChild(video);
+    overlay.classList.remove("hidden");
+    overlay.classList.add("flex");
+    document.body.style.overflow = "hidden";
+    video.play().catch(() => {});
+  }
+
+  function closeVideoOverlay() {
+    if (!activeVideo) return;
+    const video = activeVideo;
+
+    if (activeVideoNextSibling) {
+      activeVideoParent.insertBefore(video, activeVideoNextSibling);
+    } else {
+      activeVideoParent.appendChild(video);
+    }
+
+    overlay.classList.add("hidden");
+    overlay.classList.remove("flex");
+    document.body.style.overflow = "";
+
+    // No duplicate playback: resume only if it's still visible in the
+    // grid (matching the autoplay-on-scroll behaviour), otherwise stop.
+    if (isInViewport(video, 0.5)) {
+      video.play().catch(() => {});
+    } else {
+      video.pause();
+    }
+
+    activeVideo = null;
+    activeVideoParent = null;
+    activeVideoNextSibling = null;
+  }
+
+  videos.forEach((video) => {
+    video.addEventListener("click", () => openVideoOverlay(video));
+  });
+
+  closeBtn.addEventListener("click", closeVideoOverlay);
+  overlay.addEventListener("click", (e) => { if (e.target === overlay) closeVideoOverlay(); });
 }
 
 /* Start Project Videos */
